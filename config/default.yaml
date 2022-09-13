@@ -1,0 +1,16 @@
+file:
+  save_folder: 'music'
+  play_icon_file: 'icon/play.png'
+  stop_icon_file: 'icon/stop.png'
+  download_icon_file: 'icon/download.png'
+  prev_icon_file: 'icon/prev.png'
+  next_icon_file: 'icon/next.png'
+
+window:
+  window_size: [720, 640]
+  margin: 50
+  pagesize: 10
+  infosize: 50
+
+search:
+  pagesize: 50

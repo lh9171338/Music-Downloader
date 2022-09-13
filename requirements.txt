@@ -1,0 +1,5 @@
+aiohttp==3.8.1
+PyQt5==5.15.7
+requests==2.27.1
+selenium==4.4.3
+yacs==0.1.8
