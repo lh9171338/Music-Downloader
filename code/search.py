@@ -1,3 +1,13 @@
+# -*- encoding: utf-8 -*-
+
+"""
+@File    :   search.py
+@Time    :   2024/3/12 13:15:33
+@Author  :   lh9171338
+@Version :   1.0
+@Contact :   2909171338@qq.com
+"""
+
 from yacs.config import CfgNode
 from typing import List
 from PyQt5.QtCore import *

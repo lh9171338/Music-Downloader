@@ -1,35 +1,43 @@
+# -*- encoding: utf-8 -*-
+
+"""
+@File    :   music_downloader.py
+@Time    :   2024/3/12 13:15:33
+@Author  :   lh9171338
+@Version :   1.0
+@Contact :   2909171338@qq.com
+"""
+
 import os
 import sys
 from yacs.config import CfgNode
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from typing import List, Type
+from typing import Type
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from search import SearchWorker
 from download import DownloadWorker, AsyncDownloadWorker
+from player import Player
 
 
 class MusicDownloader(QMainWindow):
     search_started = pyqtSignal()
     download_started = pyqtSignal()
 
-    def __init__(self, cfg: CfgNode, searcher: Type[SearchWorker],
-                 downloader: Type[DownloadWorker] = AsyncDownloadWorker, **kwargs):
+    def __init__(
+        self,
+        cfg: CfgNode,
+        searcher: Type[SearchWorker],
+        downloader: Type[DownloadWorker] = AsyncDownloadWorker,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         root_path = sys.path[0]
-        save_path = os.path.join(root_path, '..', cfg.file.save_folder)
+        save_path = os.path.join(root_path, "..", cfg.file.save_folder)
 
         # Variables
-        service = Service(os.path.join(root_path, '../tool/chromedriver.exe'))
-        options = Options()
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('--headless')
-        self.driver = webdriver.Chrome(service=service, options=options)
+        self.player = Player()
 
         self.play_index = None
         self.items = []
@@ -63,15 +71,25 @@ class MusicDownloader(QMainWindow):
 
         # UI
         # Icon
-        self.icon_play = QIcon(os.path.join(root_path, '..', cfg.file.play_icon_file))
-        self.icon_stop = QIcon(os.path.join(root_path, '..', cfg.file.stop_icon_file))
-        self.icon_download = QIcon(os.path.join(root_path, '..', cfg.file.download_icon_file))
-        self.icon_prev = QIcon(os.path.join(root_path, '..', cfg.file.prev_icon_file))
-        self.icon_next = QIcon(os.path.join(root_path, '..', cfg.file.next_icon_file))
+        self.icon_play = QIcon(
+            os.path.join(root_path, "..", cfg.file.play_icon_file)
+        )
+        self.icon_stop = QIcon(
+            os.path.join(root_path, "..", cfg.file.stop_icon_file)
+        )
+        self.icon_download = QIcon(
+            os.path.join(root_path, "..", cfg.file.download_icon_file)
+        )
+        self.icon_prev = QIcon(
+            os.path.join(root_path, "..", cfg.file.prev_icon_file)
+        )
+        self.icon_next = QIcon(
+            os.path.join(root_path, "..", cfg.file.next_icon_file)
+        )
 
         # Head
         self.edit_keyword = QLineEdit()
-        self.button_download = QPushButton(self.icon_download, '下载')
+        self.button_download = QPushButton(self.icon_download, "下载")
         self.layout_head = QHBoxLayout()
         self.layout_head.addWidget(self.edit_keyword)
         self.layout_head.addStretch(1)
@@ -96,7 +114,9 @@ class MusicDownloader(QMainWindow):
         self.label_songs = [QLabel() for _ in range(self.pagesize)]
         self.label_durations = [QLabel() for _ in range(self.pagesize)]
         self.label_sizes = [QLabel() for _ in range(self.pagesize)]
-        self.button_plays = [QPushButton(self.icon_stop, '') for _ in range(self.pagesize)]
+        self.button_plays = [
+            QPushButton(self.icon_stop, "") for _ in range(self.pagesize)
+        ]
         self.layout_items = [QHBoxLayout() for _ in range(self.pagesize)]
         for i in range(self.pagesize):
             self.layout_items[i].addWidget(self.check_items[i])
@@ -110,8 +130,8 @@ class MusicDownloader(QMainWindow):
         # Tail
         self.label_page = QLabel()
         self.label_page.setAlignment(Qt.AlignCenter)
-        self.button_prev = QPushButton(self.icon_prev, '')
-        self.button_next = QPushButton(self.icon_next, '')
+        self.button_prev = QPushButton(self.icon_prev, "")
+        self.button_next = QPushButton(self.icon_next, "")
         self.layout_tail = QHBoxLayout()
         self.layout_tail.addWidget(self.button_prev)
         self.layout_tail.addWidget(self.label_page)
@@ -147,19 +167,19 @@ class MusicDownloader(QMainWindow):
     def setVisibleAll(self, visible: bool):
         self.button_download.setEnabled(False)
         self.check_item.setVisible(visible)
-        self.label_song.setText('歌曲名' if visible else '')
-        self.label_duration.setText('时长 ' if visible else '')
-        self.label_size.setText('大小  ' if visible else '')
-        self.label_play.setText('播放' if visible else '')
+        self.label_song.setText("歌曲名" if visible else "")
+        self.label_duration.setText("时长 " if visible else "")
+        self.label_size.setText("大小  " if visible else "")
+        self.label_play.setText("播放" if visible else "")
 
         for i in range(self.pagesize):
             self.check_items[i].setVisible(visible)
-            self.label_songs[i].setText('')
-            self.label_durations[i].setText('')
-            self.label_sizes[i].setText('')
+            self.label_songs[i].setText("")
+            self.label_durations[i].setText("")
+            self.label_sizes[i].setText("")
             self.button_plays[i].setVisible(visible)
 
-        self.label_page.setText('')
+        self.label_page.setText("")
         self.button_prev.setVisible(visible)
         self.button_next.setVisible(visible)
 
@@ -181,16 +201,24 @@ class MusicDownloader(QMainWindow):
             index = self.page * self.pagesize + i
             if i < self.num_page_items:
                 item = self.items[index]
-                song_info = os.path.splitext(item.filename)[0][:self.infosize]
-                duration_info = f'{item.duration // 60:02d}:{item.duration % 60:02d}' if item.duration > 0 else '  --  '
-                size_info = f'{item.size / 1048576:.2f}MB' if item.size > 0 else '  --  '
+                song_info = os.path.splitext(item.filename)[0][: self.infosize]
+                duration_info = (
+                    f"{item.duration // 60:02d}:{item.duration % 60:02d}"
+                    if item.duration > 0
+                    else "  --  "
+                )
+                size_info = (
+                    f"{item.size / 1048576:.2f}MB"
+                    if item.size > 0
+                    else "  --  "
+                )
                 self.label_songs[i].setText(song_info)
                 self.label_durations[i].setText(duration_info)
                 self.label_sizes[i].setText(size_info)
             else:
-                self.label_songs[i].setText('')
-                self.label_durations[i].setText('')
-                self.label_sizes[i].setText('')
+                self.label_songs[i].setText("")
+                self.label_durations[i].setText("")
+                self.label_sizes[i].setText("")
 
     def updatePlayButton(self):
         for i in range(self.pagesize):
@@ -206,12 +234,12 @@ class MusicDownloader(QMainWindow):
 
     def updatePage(self):
         if self.play_index is not None:
-            self.driver.back()
+            self.player.stop()
             self.play_index = None
 
         self.button_prev.setEnabled(self.page > 0)
         self.button_next.setEnabled(self.page < self.num_pages - 1)
-        self.label_page.setText(f'{self.page + 1}/{self.num_pages}')
+        self.label_page.setText(f"{self.page + 1}/{self.num_pages}")
 
     def updateAll(self):
         self.updatePage()
@@ -237,13 +265,22 @@ class MusicDownloader(QMainWindow):
                 self.setVisibleAll(True)
             self.items = sorted(items)
             self.num_items = len(self.items)
-            self.num_pages = self.num_items // self.pagesize + (self.num_items % self.pagesize > 0)
+            self.num_pages = self.num_items // self.pagesize + (
+                self.num_items % self.pagesize > 0
+            )
             self.page = 0
-            self.num_page_items = min(self.pagesize, self.num_items - self.page * self.pagesize)
+            self.num_page_items = min(
+                self.pagesize, self.num_items - self.page * self.pagesize
+            )
             self.check_status = [False] * self.num_page_items
             self.updateAll()
         else:
-            msg_box = QMessageBox(QMessageBox.Warning, 'warning', 'No content found!', QMessageBox.Ok)
+            msg_box = QMessageBox(
+                QMessageBox.Warning,
+                "warning",
+                "No content found!",
+                QMessageBox.Ok,
+            )
             msg_box.button(QMessageBox.Ok).animateClick(1000)
             msg_box.exec_()
             if self.items:
@@ -276,24 +313,34 @@ class MusicDownloader(QMainWindow):
             else:
                 failure += 1
         if failure == 0:
-            msg_box = QMessageBox(QMessageBox.Information, 'information', 'All files downloaded successfully!',
-                                  QMessageBox.Ok)
+            msg_box = QMessageBox(
+                QMessageBox.Information,
+                "information",
+                "All files downloaded successfully!",
+                QMessageBox.Ok,
+            )
             msg_box.button(QMessageBox.Ok).animateClick(1000)
             msg_box.exec_()
         else:
-            QMessageBox.warning(self, 'warning', f'{failure} files failed to download!')
+            QMessageBox.warning(
+                self, "warning", f"{failure} files failed to download!"
+            )
         self.setEnabled(True)
         self.updateCheckBox()
 
     def buttonPrevCallback(self):
         self.page -= 1
-        self.num_page_items = min(self.pagesize, self.num_items - self.page * self.pagesize)
+        self.num_page_items = min(
+            self.pagesize, self.num_items - self.page * self.pagesize
+        )
         self.check_status = [False] * self.num_page_items
         self.updateAll()
 
     def buttonNextCallback(self):
         self.page += 1
-        self.num_page_items = min(self.pagesize, self.num_items - self.page * self.pagesize)
+        self.num_page_items = min(
+            self.pagesize, self.num_items - self.page * self.pagesize
+        )
         self.check_status = [False] * self.num_page_items
         self.updateAll()
 
@@ -316,13 +363,13 @@ class MusicDownloader(QMainWindow):
             url_index = self.page * self.pagesize + index
             self.play_index = index
             url = self.items[url_index].url
-            self.driver.get(url)
+            self.player.play(url)
         else:
             self.play_index = None
-            self.driver.back()
+            self.player.stop()
         self.updatePlayButton()
 
     def closeEvent(self, a0: QCloseEvent):
         self.search_thread.exit()
         self.download_thread.exit()
-        self.driver.close()
+        self.player.stop()

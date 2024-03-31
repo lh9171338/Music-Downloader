@@ -1,3 +1,13 @@
+# -*- encoding: utf-8 -*-
+
+"""
+@File    :   download.py
+@Time    :   2024/3/12 13:15:33
+@Author  :   lh9171338
+@Version :   1.0
+@Contact :   2909171338@qq.com
+"""
+
 import os
 import logging
 import requests
@@ -36,10 +46,10 @@ class DownloadWorker(QObject):
             try:
                 res = requests.get(url)
                 save_file = os.path.join(self.save_path, filename)
-                with open(save_file, 'wb') as f:
+                with open(save_file, "wb") as f:
                     f.write(res.content)
             except Exception as e:
-                logging.error(f'Fail to download {filename}', str(e))
+                logging.error(f"Fail to download {filename}", str(e))
                 result = False
             self.results.append(result)
 
@@ -47,7 +57,6 @@ class DownloadWorker(QObject):
 
 
 class AsyncDownloadWorker(DownloadWorker):
-
     async def func(self, item: Item, session: aiohttp.ClientSession) -> bool:
         url = item.url
         filename = item.filename
@@ -56,10 +65,10 @@ class AsyncDownloadWorker(DownloadWorker):
             res = await session.get(url)
             content = await res.read()
             save_file = os.path.join(self.save_path, filename)
-            with open(save_file, 'wb') as f:
+            with open(save_file, "wb") as f:
                 f.write(content)
         except Exception as e:
-            logging.error(f'Fail to download {filename}', str(e))
+            logging.error(f"Fail to download {filename}", str(e))
             result = False
 
         return result
@@ -67,7 +76,10 @@ class AsyncDownloadWorker(DownloadWorker):
     async def main(self, loop: asyncio.AbstractEventLoop) -> None:
         self.results = []
         async with aiohttp.ClientSession() as session:
-            tasks = [loop.create_task(self.func(item, session)) for item in self.items]
+            tasks = [
+                loop.create_task(self.func(item, session))
+                for item in self.items
+            ]
             finished, unfinished = await asyncio.wait(tasks)
             self.results = [f.result() for f in finished if f.result()]
 
