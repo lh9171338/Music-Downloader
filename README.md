@@ -43,8 +43,3 @@ python qq_music_downloader.py
 # 网易云音乐
 python neteasecloud_music_downloader.py
 ```
-
-## 注意事项
-
-- 在线播放歌曲是通过浏览器完成，因此本地需要安装有浏览器以及对应的驱动，仓库中提供了一个[谷歌浏览器驱动](tool)，
-  程序运行时如果出现版本不匹配问题，请重新下载**合适的浏览器驱动**或者**改用其他浏览器**。
